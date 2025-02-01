@@ -15,7 +15,19 @@ This repository contains my implementation of the lab assignments from CS 259 GP
  **Description**: [Lab1](./labs/lab1/cs259_lab1.pdf)
 
  **Deliverables**:
- - source.diff : diff file showing the changes made to the source code
- - report.pdf :  written report detailing the evaluation results
+ - [source.diff](./labs/lab1/source.diff) : diff file showing the changes made to the source code
+ - [report.pdf](./labs/lab1/gpu_lab1_report.pdf) :  written report detailing the evaluation results
 
  > See the exact changes for lab 1 via the 'lab1' branch
+
+## Lab 2
+
+ **Objective**:  Extending GPU microarchitecture by  implementing a new software prefetch instruction to reduce global memory latency
+
+ **Description**: [Lab2](./labs/lab1/cs259_lab2.pdf)
+
+ **Deliverables**:
+ - [source.diff](./labs/lab2/source.diff) : diff file showing the changes made to the source code
+ - [report.pdf](./labs/lab2/gpu_lab2_report.pdf) :  written report detailing the evaluation results
+
+ > See the exact changes for lab 2 via the 'lab2' branch
