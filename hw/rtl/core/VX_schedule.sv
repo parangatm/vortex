@@ -412,22 +412,41 @@ module VX_schedule import VX_gpu_pkg::*; #(
 `ifdef PERF_ENABLE
     reg [`PERF_CTR_BITS-1:0] perf_sched_idles;
     reg [`PERF_CTR_BITS-1:0] perf_sched_stalls;
+    reg [`PERF_CTR_BITS-1:0] perf_sched_active_threads;
+    reg [`PERF_CTR_BITS-1:0] perf_sched_sched_fires;
 
     wire schedule_idle = ~schedule_valid;
     wire schedule_stall = schedule_if.valid && ~schedule_if.ready;
+    wire [`NUM_THREADS-1:0] sched_tmask = schedule_if.data.tmask;
+
+    wire [`CLOG2(`NUM_THREADS+1)-1:0] active_threads_cnt;
+    `POP_COUNT(active_threads_cnt, sched_tmask);
 
     always @(posedge clk) begin
         if (reset) begin
             perf_sched_idles  <= '0;
             perf_sched_stalls <= '0;
+            perf_sched_active_threads <= '0;
+            perf_sched_sched_fires <= '0;
         end else begin
             perf_sched_idles  <= perf_sched_idles + `PERF_CTR_BITS'(schedule_idle);
             perf_sched_stalls <= perf_sched_stalls + `PERF_CTR_BITS'(schedule_stall);
+
+            // update active warp counter whenever new warp is scheduled
+            if (schedule_if_fire) begin
+                perf_sched_sched_fires <= perf_sched_sched_fires + `PERF_CTR_BITS'(1);
+                perf_sched_active_threads <= perf_sched_active_threads + `PERF_CTR_BITS'(active_threads_cnt);
+            end else begin
+                perf_sched_sched_fires <= perf_sched_sched_fires;
+                perf_sched_active_threads <= perf_sched_active_threads;
+            end   
         end
     end
 
     assign sched_perf.idles = perf_sched_idles;
     assign sched_perf.stalls = perf_sched_stalls;
+    assign sched_perf.active_threads = perf_sched_active_threads;
+    assign sched_perf.sched_fires = perf_sched_sched_fires;
 `endif
 
 endmodule

@@ -180,6 +180,7 @@ extern int vx_dump_perf(vx_device_h hdevice, FILE* stream) {
   // PERF: pipeline stalls
   uint64_t sched_idles = 0;
   uint64_t sched_stalls = 0;
+  uint64_t sched_warp_eff = 0;
   uint64_t ibuffer_stalls = 0;
   uint64_t scrb_stalls = 0;
   uint64_t opds_stalls = 0;
@@ -273,6 +274,32 @@ extern int vx_dump_perf(vx_device_h hdevice, FILE* stream) {
           fprintf(stream, "PERF: core%d: scheduler stalls=%ld (%d%%)\n", core_id, sched_stalls_per_core, stalls_percent_per_core);
         }
         sched_stalls += sched_stalls_per_core;
+      }
+      // warp execution efficiency
+      {
+        // utilities for warp execution efficiency counter
+        uint64_t warps_per_core, threads_per_warp;
+        CHECK_ERR(vx_dev_caps(hdevice, VX_CAPS_NUM_WARPS, &warps_per_core), {
+          return err;
+        });
+        CHECK_ERR(vx_dev_caps(hdevice, VX_CAPS_NUM_THREADS, &threads_per_warp), {
+          return err;
+        });
+        uint32_t threads_per_core = warps_per_core * threads_per_warp;
+        // warp execution efficiency counter
+        {
+          uint64_t active_threads_per_core;
+          CHECK_ERR(vx_mpm_query(hdevice, VX_CSR_MPM_ACTIVE_THREADS_LT, core_id, &active_threads_per_core), {
+            return err;
+          });
+          uint64_t sched_fires_per_core;
+          CHECK_ERR(vx_mpm_query(hdevice, VX_CSR_MPM_SCHED_FIRES_LT, core_id, &sched_fires_per_core), {
+            return err;
+          });
+          float warp_eff_percent_per_core = float(active_threads_per_core) / float(sched_fires_per_core) / float(threads_per_warp) * 100.0;
+          fprintf(stream, "PERF: core%d: threads/core=%d total activated threads=%ld total schedule fires=%ld scheduler warp efficiency=(%f%%)\n", core_id, threads_per_core, active_threads_per_core, sched_fires_per_core, warp_eff_percent_per_core);
+          sched_warp_eff += warp_eff_percent_per_core;
+        }
       }
       // ibuffer stalls
       {
@@ -570,6 +597,7 @@ extern int vx_dump_perf(vx_device_h hdevice, FILE* stream) {
   case VX_DCR_MPM_CLASS_CORE: {
     int sched_idles_percent = calcAvgPercent(sched_idles, total_cycles);
     int sched_stalls_percent = calcAvgPercent(sched_stalls, total_cycles);
+    int sched_warp_eff_percent = calcAvgPercent(sched_warp_eff, num_cores);
     int ibuffer_percent = calcAvgPercent(ibuffer_stalls, total_cycles);
     int scrb_percent = calcAvgPercent(scrb_stalls, total_cycles);
     int opds_percent = calcAvgPercent(opds_stalls, total_cycles);
@@ -578,6 +606,7 @@ extern int vx_dump_perf(vx_device_h hdevice, FILE* stream) {
     uint64_t scrb_total = scrb_alu + scrb_fpu + scrb_lsu + scrb_csrs + scrb_wctl;
     fprintf(stream, "PERF: scheduler idle=%ld (%d%%)\n", sched_idles, sched_idles_percent);
     fprintf(stream, "PERF: scheduler stalls=%ld (%d%%)\n", sched_stalls, sched_stalls_percent);
+    fprintf(stream, "PERF: scheduler warp efficiency=%ld (%d%%)\n", sched_warp_eff / num_cores, sched_warp_eff_percent);
     fprintf(stream, "PERF: ibuffer stalls=%ld (%d%%)\n", ibuffer_stalls, ibuffer_percent);
     fprintf(stream, "PERF: scoreboard stalls=%ld (%d%%) (alu=%d%%, fpu=%d%%, lsu=%d%%, csrs=%d%%, wctl=%d%%)\n"
       , scrb_stalls

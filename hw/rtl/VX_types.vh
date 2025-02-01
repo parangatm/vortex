@@ -110,6 +110,10 @@
 `define VX_CSR_MPM_IFETCH_LT_H          12'hB91
 `define VX_CSR_MPM_LOAD_LT              12'hB12
 `define VX_CSR_MPM_LOAD_LT_H            12'hB92
+`define VX_CSR_MPM_ACTIVE_THREADS_LT    12'hB13
+`define VX_CSR_MPM_ACTIVE_THREADS_LT_H  12'hB93
+`define VX_CSR_MPM_SCHED_FIRES_LT       12'hB14
+`define VX_CSR_MPM_SCHED_FIRES_LT_H     12'hB94
 
 // Machine Performance-monitoring memory counters (class 2) ///////////////////
 
