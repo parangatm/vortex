@@ -387,6 +387,10 @@ static const char* op_string(const Instr &instr) {
       default:
         std::abort();
       }
+    case 1:
+      if (func3 == 0) { // Prefetch
+        return "PREFETCH";
+      } 
     default:
       std::abort();
     }
@@ -574,6 +578,12 @@ std::shared_ptr<Instr> Emulator::decode(uint32_t code) const {
           break;
         default:
           std::abort();
+        }
+        break;
+      case 1:
+        if (func3 == 0) { // Prefetch
+          instr->addSrcReg(rs1, RegType::Integer);
+          break;
         }
         break;
       default:

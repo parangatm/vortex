@@ -232,6 +232,7 @@ void Core::fetch() {
   MemReq mem_req;
   mem_req.addr  = trace->PC;
   mem_req.write = false;
+  mem_req.prefetch = false;
   mem_req.tag   = pending_icache_.allocate(trace);
   mem_req.cid   = trace->cid;
   mem_req.uuid  = trace->uuid;

@@ -47,6 +47,9 @@ public:
 		uint64_t bank_stalls;
 		uint64_t mshr_stalls;
 		uint64_t mem_latency;
+		uint64_t prefetch_requests;
+    	uint64_t prefetch_hits;
+    	uint64_t prefetch_misses;
 
 		PerfStats()
 			: reads(0)
@@ -58,6 +61,9 @@ public:
 			, bank_stalls(0)
 			, mshr_stalls(0)
 			, mem_latency(0)
+			, prefetch_requests(0)
+			, prefetch_hits(0)
+			, prefetch_misses(0)
 		{}
 
 		PerfStats& operator+=(const PerfStats& rhs) {
@@ -70,6 +76,9 @@ public:
 			this->bank_stalls += rhs.bank_stalls;
 			this->mshr_stalls += rhs.mshr_stalls;
 			this->mem_latency += rhs.mem_latency;
+			this->prefetch_requests += rhs.prefetch_requests;
+        	this->prefetch_hits += rhs.prefetch_hits;
+        	this->prefetch_misses += rhs.prefetch_misses;
 			return *this;
 		}
 	};

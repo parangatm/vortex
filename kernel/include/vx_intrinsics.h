@@ -96,6 +96,11 @@ extern "C" {
         __asm__ __volatile__ ("csrc %0, %1"	:: "i" (csr), "r" (__v) : "memory"); \
 })
 
+// Prefetch instruction
+inline void vx_prefetch(int addr) {
+    __asm__ volatile (".insn r %0, 0, 1, x0, %1, x0" :: "i"(RISCV_CUSTOM0), "r"(addr));
+}
+
 // Set thread mask
 inline void vx_tmc(int thread_mask) {
     __asm__ volatile (".insn r %0, 0, 0, x0, %1, x0" :: "i"(RISCV_CUSTOM0), "r"(thread_mask));

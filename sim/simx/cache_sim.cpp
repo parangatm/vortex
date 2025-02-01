@@ -156,6 +156,7 @@ struct bank_req_t {
 	uint64_t uuid;
 	ReqType  type;
 	bool     write;
+	bool prefetch;
 
 	bank_req_t(uint32_t num_ports)
 		: ports(num_ports)
@@ -494,6 +495,7 @@ public:
 				bank_req.uuid  = core_req.uuid;
 				bank_req.type  = bank_req_t::Core;
 				bank_req.write = core_req.write;
+				bank_req.prefetch = core_req.prefetch;
 				pipeline_req   = bank_req;
 				DT(3, simobject_->name() << "-core-req: " << core_req);
 			}
@@ -510,6 +512,8 @@ public:
 
 		// process active request
 		this->processBankRequests();
+		DT(3, simobject_->name() << " prefetch_requests " << perf_stats_.prefetch_requests);
+		DT(3, simobject_->name() << " prefetch_hits " << perf_stats_.prefetch_hits);
 	}
 
 	const PerfStats& perf_stats() const {
@@ -562,7 +566,7 @@ private:
 			} break;
 			case bank_req_t::Replay: {
 				// send core response
-				if (!pipeline_req.write || config_.write_reponse) {
+				if (!pipeline_req.prefetch && (!pipeline_req.write || config_.write_reponse)) {
 					for (auto& info : pipeline_req.ports) {
 						if (!info.valid)
 							continue;
@@ -599,6 +603,16 @@ private:
 					}
 				}
 
+				// prefetch counter
+				if (pipeline_req.prefetch) {
+            	    ++perf_stats_.prefetch_requests;
+                	if (hit_line_id != -1) {
+                    	++perf_stats_.prefetch_hits;
+                	} else {
+                    	++perf_stats_.prefetch_misses;
+                	}
+            	}
+
 				if (hit_line_id != -1) {
 					// Hit handling
 					if (pipeline_req.write) {
@@ -619,7 +633,7 @@ private:
 						}
 					}
 					// send core response
-					if (!pipeline_req.write || config_.write_reponse) {
+					if (!pipeline_req.prefetch && (!pipeline_req.write || config_.write_reponse)) {
 						for (auto& info : pipeline_req.ports) {
 							if (!info.valid)
 								continue;
@@ -642,6 +656,7 @@ private:
 							MemReq mem_req;
 							mem_req.addr  = params_.mem_addr(bank_id, pipeline_req.set_id, repl_line.tag);
 							mem_req.write = true;
+							mem_req.prefetch = false;
 							mem_req.cid   = pipeline_req.cid;
 							mem_req_ports_.at(bank_id).push(mem_req, 1);
 							DT(3, simobject_->name() << "-bank" << bank_id << "-writeback: " << mem_req);
@@ -655,6 +670,7 @@ private:
 							MemReq mem_req;
 							mem_req.addr  = params_.mem_addr(bank_id, pipeline_req.set_id, pipeline_req.tag);
 							mem_req.write = true;
+							mem_req.prefetch = false;
 							mem_req.cid   = pipeline_req.cid;
 							mem_req.uuid  = pipeline_req.uuid;
 							mem_req_ports_.at(bank_id).push(mem_req, 1);
@@ -683,9 +699,11 @@ private:
 							MemReq mem_req;
 							mem_req.addr  = params_.mem_addr(bank_id, pipeline_req.set_id, pipeline_req.tag);
 							mem_req.write = false;
+							mem_req.prefetch = false;
 							mem_req.tag   = mshr_id;
 							mem_req.cid   = pipeline_req.cid;
 							mem_req.uuid  = pipeline_req.uuid;
+							mem_req.prefetch = pipeline_req.prefetch;
 							mem_req_ports_.at(bank_id).push(mem_req, 1);
 							DT(3, simobject_->name() << "-bank" << bank_id << "-fill: " << mem_req);
 							++pending_fill_reqs_;
