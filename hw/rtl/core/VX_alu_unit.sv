@@ -35,6 +35,7 @@ module VX_alu_unit #(
     localparam PE_SEL_BITS  = `CLOG2(PE_COUNT);
     localparam PE_IDX_INT   = 0;
     localparam PE_IDX_MDV   = PE_IDX_INT + `EXT_M_ENABLED;
+    localparam PE_IDX_DOT8  = PE_IDX_MDV + 1;  // New index for DOT8 ALU
 
     VX_execute_if #(
         .NUM_LANES (NUM_LANES)
@@ -111,6 +112,17 @@ module VX_alu_unit #(
             .commit_if  (pe_commit_if[PE_IDX_MDV])
         );
     `endif
+
+        VX_alu_dot8 #(
+            .INSTANCE_ID ($sformatf("%s-dot8%0d", INSTANCE_ID, block_idx)),
+            .NUM_LANES (NUM_LANES)
+        ) alu_dot8 (
+            .clk        (clk),
+            .reset      (reset),
+            .execute_if (pe_execute_if[PE_IDX_DOT8]),
+            .commit_if  (pe_commit_if[PE_IDX_DOT8])
+        );
+
     end
 
     VX_gather_unit #(

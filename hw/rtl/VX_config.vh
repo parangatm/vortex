@@ -422,6 +422,11 @@
 `endif
 `endif
 
+// DOT8 instruction
+`ifndef LATENCY_DOT8
+`define LATENCY_DOT8 2
+`endif
+
 // Floating-Point Units ///////////////////////////////////////////////////////
 
 // Size of FPU Request Queue

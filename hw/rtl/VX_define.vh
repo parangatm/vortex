@@ -156,12 +156,15 @@
 `define INST_ALU_XOR         4'b1110
 `define INST_ALU_SLL         4'b1111
 
+//DOT8 instruction
+`define INST_ALU_DOT8        4'b0001 // Unused Function code for DOT8
 
 `define ALU_TYPE_BITS        2
 `define ALU_TYPE_ARITH       0
 `define ALU_TYPE_BRANCH      1
 `define ALU_TYPE_MULDIV      2
 `define ALU_TYPE_OTHER       3
+`define ALU_TYPE_DOT8        3
 
 `define INST_ALU_BITS        4
 `define INST_ALU_CLASS(op)   op[3:2]

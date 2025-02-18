@@ -130,6 +130,13 @@ inline void vx_wspawn(int num_warps, vx_wspawn_pfn func_ptr) {
     __asm__ volatile (".insn r %0, 1, 0, x0, %1, %2" :: "i"(RISCV_CUSTOM0), "r"(num_warps), "r"(func_ptr));
 }
 
+// Dot Product (4x4 int8 elements)
+inline int vx_dot8(int a, int b) {
+    int result;
+    __asm__ volatile (".insn r %1, 0, 1, %0, %2, %3" : "=r"(result) : "i"(RISCV_CUSTOM0), "r"(a), "r"(b));
+    return result;
+}
+
 // Split on a predicate
 inline int vx_split(int predicate) {
     int ret;
